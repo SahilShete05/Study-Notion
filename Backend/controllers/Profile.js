@@ -6,6 +6,7 @@ const Course = require("../models/Course");
 const { convertSecondsToDuration } = require("../utils/secToDuration");
 
 
+
 exports.updateProfile = async (req,res) =>{
     try {
         
