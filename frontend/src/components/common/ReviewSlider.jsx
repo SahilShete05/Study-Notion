@@ -1,14 +1,15 @@
 import React, { useEffect, useState } from "react";
 import ReactStars from "react-rating-stars-component";
 import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
+import SwiperCore, { Autoplay, FreeMode, Pagination, Navigation } from "swiper";
+import "swiper/swiper-bundle.min.css";
 import { FaStar } from "react-icons/fa";
-import { Autoplay, FreeMode, Pagination, Navigation } from "swiper/modules";
+
 import { apiConnector } from "../../services/apiconnector";
 import { ratingsEndpoints } from "../../services/apis";
+
+// Register Swiper modules
+SwiperCore.use([Autoplay, FreeMode, Pagination, Navigation]);
 
 const ReviewSlider = () => {
   const [reviews, setReviews] = useState([]);
@@ -17,13 +18,8 @@ const ReviewSlider = () => {
   useEffect(() => {
     (async () => {
       try {
-        const { data } = await apiConnector(
-          "GET",
-          ratingsEndpoints.REVIEWS_DETAILS_API
-        );
-        if (data?.success) {
-          setReviews(data?.data);
-        }
+        const { data } = await apiConnector("GET", ratingsEndpoints.REVIEWS_DETAILS_API);
+        if (data?.success) setReviews(data?.data);
       } catch (error) {
         console.error("Failed to fetch reviews:", error);
       }
@@ -37,13 +33,9 @@ const ReviewSlider = () => {
           slidesPerView={1}
           spaceBetween={20}
           loop={true}
-          autoplay={{
-            delay: 2500,
-            disableOnInteraction: false,
-          }}
+          autoplay={{ delay: 2500, disableOnInteraction: false }}
           pagination={{ clickable: true }}
           navigation={true}
-          modules={[Autoplay, FreeMode, Pagination, Navigation]}
           breakpoints={{
             640: { slidesPerView: 1 },
             768: { slidesPerView: 2 },
@@ -54,7 +46,6 @@ const ReviewSlider = () => {
           {reviews.map((review, i) => (
             <SwiperSlide key={i}>
               <div className="flex flex-col gap-3 rounded-xl bg-richblack-800 p-6 shadow-lg h-full">
-                {/* User Info */}
                 <div className="flex items-center gap-3">
                   <img
                     src={
@@ -75,14 +66,12 @@ const ReviewSlider = () => {
                   </div>
                 </div>
 
-                {/* Review Text */}
                 <p className="text-richblack-25 text-sm leading-relaxed">
                   {review?.review.split(" ").length > truncateWords
                     ? `${review?.review.split(" ").slice(0, truncateWords).join(" ")} ...`
                     : review?.review}
                 </p>
 
-                {/* Rating */}
                 <div className="flex items-center gap-2 mt-auto">
                   <h3 className="font-semibold text-yellow-100">
                     {review.rating.toFixed(1)}

@@ -1,12 +1,11 @@
 import React from "react";
-import { Swiper, SwiperSlide } from "swiper/react";
-import "swiper/css";
-import "swiper/css/free-mode";
-import "swiper/css/navigation";
-import "swiper/css/pagination";
-import { Autoplay, FreeMode, Navigation, Pagination } from "swiper/modules";
+import Course_Card from "./Course_Card"
 
-import Course_Card from "./Course_Card";
+import { Swiper, SwiperSlide } from "swiper/react";
+import "swiper/swiper-bundle.min.css";
+
+import SwiperCore, { Autoplay, FreeMode, Pagination, Navigation } from "swiper";
+SwiperCore.use([Autoplay, FreeMode, Pagination, Navigation]);
 
 const CourseSlider = ({ Courses }) => {
   return (
@@ -17,18 +16,11 @@ const CourseSlider = ({ Courses }) => {
           spaceBetween={25}
           loop={true}
           navigation={true}
-          modules={[Autoplay, FreeMode, Pagination, Navigation]}
           autoplay={{ delay: 3000, disableOnInteraction: false }}
           breakpoints={{
-            640: {
-              slidesPerView: 1,
-            },
-            768: {
-              slidesPerView: 2,
-            },
-            1024: {
-              slidesPerView: 3,
-            },
+            640: { slidesPerView: 1 },
+            768: { slidesPerView: 2 },
+            1024: { slidesPerView: 3 },
           }}
           className="max-h-[30rem] mySwiper"
         >

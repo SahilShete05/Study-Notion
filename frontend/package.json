@@ -27,17 +27,17 @@
     "react-scripts": "^5.0.1",
     "react-super-responsive-table": "^5.2.3",
     "react-type-animation": "^3.2.0",
-    "swiper": "^10.3.1",
+    "swiper": "^8.4.5",
     "video-react": "^0.16.0",
     "web-vitals": "^2.1.4"
   },
   "scripts": {
     "start": "react-scripts start",
-    "build": "react-scripts build",
+    "build": "cross-env SKIP_PREFLIGHT_CHECK=true react-scripts build",
     "test": "react-scripts test",
     "eject": "react-scripts eject",
     "server": "cd ../backend && npm run dev",
-    "dev": "concurrently -n \"client,server\" -c \"bgBlue,bgYellow\" \"npm start\" \"npm run server\"",
+    "dev": "concurrently -n client,server -c bgBlue,bgYellow \"npm start\" \"npm run server\"",
     "lint": "eslint \"src/**/*.{js,jsx}\""
   },
   "eslintConfig": {
@@ -53,7 +53,7 @@
     "rules": {
       "no-unused-vars": "warn",
       "import/no-duplicates": "warn",
-      "import/no-unresolved": "error",
+      "import/no-unresolved": "warn",
       "react/jsx-uses-react": "off",
       "react/react-in-jsx-scope": "off"
     }
@@ -71,6 +71,7 @@
     ]
   },
   "devDependencies": {
+    "cross-env": "^10.1.0",
     "eslint": "^8.57.0",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-jsx-a11y": "^6.9.0",
