@@ -34,13 +34,13 @@ const CourseInformationForm = () => {
 
   // Fetch categories once
   useEffect(() => {
-    const fetchCategories = async () => {
+    const fetchCategoriesData = async () => {
       setLoading(true);
       const data = await fetchCourseCategories();
       if (data?.length) setCategories(data);
       setLoading(false);
     };
-    fetchCategories();
+    fetchCategoriesData();
   }, []);
 
   // Prefill form when editing
@@ -50,24 +50,26 @@ const CourseInformationForm = () => {
       setValue("courseShortDesc", course.courseDescription || "");
       setValue("coursePrice", course.price || 0);
       setValue("courseTags", course.tag || []);
-      setValue("courseBenefits", course.whatWillYouLearn || "");
+      setValue("courseBenefits", course.whatYouWillLearn || "");
       setValue("courseCategory", course.category?._id || "");
       setValue("courseRequirements", course.instructions || []);
       setValue("courseImage", course.thumbnail || null);
     }
   }, [editCourse, course, setValue]);
 
-  // Check if any field was changed (only relevant in edit mode)
+  // Check if any field was changed (edit mode)
   const isFormUpdated = () => {
     const current = getValues();
     return (
       current.courseTitle !== course.courseName ||
       current.courseShortDesc !== course.courseDescription ||
       current.coursePrice !== course.price ||
-      JSON.stringify(current.courseTags || []) !== JSON.stringify(course.tag || []) ||
-      current.courseBenefits !== course.whatWillYouLearn ||
+      JSON.stringify(current.courseTags || []) !==
+        JSON.stringify(course.tag || []) ||
+      current.courseBenefits !== course.whatYouWillLearn ||
       (current.courseCategory || "") !== (course.category?._id || "") ||
-      JSON.stringify(current.courseRequirements || []) !== JSON.stringify(course.instructions || []) ||
+      JSON.stringify(current.courseRequirements || []) !==
+        JSON.stringify(course.instructions || []) ||
       current.courseImage !== course.thumbnail
     );
   };
@@ -82,23 +84,36 @@ const CourseInformationForm = () => {
           toast.error("No changes made to the form");
           return;
         }
+
         formData.append("courseId", course._id);
+
         if (currentValues.courseTitle !== course.courseName)
           formData.append("courseName", data.courseTitle.trim());
         if (currentValues.courseShortDesc !== course.courseDescription)
           formData.append("courseDescription", data.courseShortDesc.trim());
         if (currentValues.coursePrice !== course.price)
           formData.append("price", data.coursePrice);
-        if (JSON.stringify(currentValues.courseTags || []) !== JSON.stringify(course.tag || []))
+        if (
+          JSON.stringify(currentValues.courseTags || []) !==
+          JSON.stringify(course.tag || [])
+        )
           formData.append("tag", JSON.stringify(data.courseTags));
-        if (currentValues.courseBenefits !== course.whatWillYouLearn)
-          formData.append("whatWillYouLearn", data.courseBenefits.trim());
+        if (currentValues.courseBenefits !== course.whatYouWillLearn)
+          formData.append("whatYouWillLearn", data.courseBenefits.trim());
         if ((currentValues.courseCategory || "") !== (course.category?._id || ""))
           formData.append("category", data.courseCategory);
-        if (JSON.stringify(currentValues.courseRequirements || []) !== JSON.stringify(course.instructions || []))
+        if (
+          JSON.stringify(currentValues.courseRequirements || []) !==
+          JSON.stringify(course.instructions || [])
+        )
           formData.append("instructions", JSON.stringify(data.courseRequirements));
         if (currentValues.courseImage !== course.thumbnail)
           formData.append("thumbnailImage", data.courseImage);
+
+        console.log("🧩 EDIT COURSE FORM DATA ENTRIES:");
+        for (let [key, value] of formData.entries()) {
+          console.log(`  ${key}:`, value);
+        }
 
         setLoading(true);
         const result = await editCourseDetails(formData, token);
@@ -116,11 +131,16 @@ const CourseInformationForm = () => {
       formData.append("courseDescription", data.courseShortDesc.trim());
       formData.append("price", data.coursePrice);
       formData.append("tag", JSON.stringify(data.courseTags));
-      formData.append("whatWillYouLearn", data.courseBenefits.trim());
+      formData.append("whatYouWillLearn", data.courseBenefits.trim()); // ✅ FIXED
       formData.append("category", data.courseCategory);
       formData.append("status", COURSE_STATUS.DRAFT);
       formData.append("instructions", JSON.stringify(data.courseRequirements));
       formData.append("thumbnailImage", data.courseImage);
+
+      console.log("🧩 CREATE COURSE FORM DATA ENTRIES:");
+      for (let [key, value] of formData.entries()) {
+        console.log(`  ${key}:`, value);
+      }
 
       setLoading(true);
       const result = await addCourseDetails(formData, token);
@@ -131,7 +151,7 @@ const CourseInformationForm = () => {
         dispatch(setCourse(result));
       }
     } catch (error) {
-      console.error("COURSE SUBMIT ERROR:", error);
+      console.error("❌ COURSE SUBMIT ERROR:", error);
       toast.error("Something went wrong while submitting the form");
       setLoading(false);
     }
@@ -154,11 +174,13 @@ const CourseInformationForm = () => {
           className="form-style w-full"
         />
         {errors.courseTitle && (
-          <span className="ml-2 text-xs text-pink-200">Course title is required</span>
+          <span className="ml-2 text-xs text-pink-200">
+            Course title is required
+          </span>
         )}
       </div>
 
-      {/* Course Description */}
+      {/* Description */}
       <div className="flex flex-col space-y-2">
         <label htmlFor="courseShortDesc" className="text-sm text-richblack-5">
           Course Short Description <sup className="text-pink-200">*</sup>
@@ -170,11 +192,13 @@ const CourseInformationForm = () => {
           className="form-style min-h-[130px] resize-none w-full"
         />
         {errors.courseShortDesc && (
-          <span className="ml-2 text-xs text-pink-200">Course Description is required</span>
+          <span className="ml-2 text-xs text-pink-200">
+            Course Description is required
+          </span>
         )}
       </div>
 
-      {/* Course Price */}
+      {/* Price */}
       <div className="flex flex-col space-y-2">
         <label htmlFor="coursePrice" className="text-sm text-richblack-5">
           Course Price <sup className="text-pink-200">*</sup>
@@ -190,7 +214,9 @@ const CourseInformationForm = () => {
           <HiOutlineCurrencyRupee className="absolute left-3 top-1/2 -translate-y-1/2 text-2xl text-richblack-400" />
         </div>
         {errors.coursePrice && (
-          <span className="ml-2 text-xs text-pink-200">Course price is required</span>
+          <span className="ml-2 text-xs text-pink-200">
+            Course price is required
+          </span>
         )}
       </div>
 
@@ -216,7 +242,9 @@ const CourseInformationForm = () => {
           ))}
         </select>
         {errors.courseCategory && (
-          <span className="ml-2 text-xs text-pink-200">Course category is required</span>
+          <span className="ml-2 text-xs text-pink-200">
+            Course category is required
+          </span>
         )}
       </div>
 
@@ -231,7 +259,7 @@ const CourseInformationForm = () => {
         errors={errors}
       />
 
-      {/* Thumbnail Upload */}
+      {/* Thumbnail */}
       <Upload
         name="courseImage"
         label="Course Thumbnail"
@@ -253,7 +281,9 @@ const CourseInformationForm = () => {
           className="form-style min-h-[130px] resize-none w-full"
         />
         {errors.courseBenefits && (
-          <span className="ml-2 text-xs text-pink-200">Benefits are required</span>
+          <span className="ml-2 text-xs text-pink-200">
+            Benefits are required
+          </span>
         )}
       </div>
 
