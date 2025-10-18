@@ -167,21 +167,36 @@ html,body{
 }
 
 ::-webkit-scrollbar-track {
-  background: #121212; /* dark background, similar to bg-richblack-900 */
+  background: #121212; 
 }
 
 ::-webkit-scrollbar-thumb {
-  background-color: #4B5563; /* gray thumb color */
+  background-color: #4B5563;
   border-radius: 6px;
-  border: 3px solid #121212; /* padding around thumb to blend with track */
+  border: 3px solid #121212; 
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background-color: #6B7280; /* lighter gray on hover */
+  background-color: #6B7280; 
 }
 
 /* Scrollbar for Firefox */
 * {
   scrollbar-width: thin;
-  scrollbar-color: #4B5563 #121212; /* thumb color, track color */
+  scrollbar-color: #4B5563 #121212; 
 }
+
+@keyframes slideDown {
+  from {
+    transform: translateY(-20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+.animate-slideDown {
+  animation: slideDown 0.3s ease-out;
+}
+
