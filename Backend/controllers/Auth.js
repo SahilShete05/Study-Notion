@@ -10,7 +10,6 @@ const { otpTemplate} = require("../mail/templates/emailVerificationTemplate")
 require("dotenv").config();
 
 
-//  SEND OTP
 
 exports.sendOtp = async (req, res) => {
   try {
@@ -26,14 +25,13 @@ exports.sendOtp = async (req, res) => {
       });
     }
 
-    //  Generate OTP
+    //  Generate a unique 6-digit OTP
     let otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
       specialChars: false,
     });
 
-    //  Ensure OTP is unique
     let existingOtp = await OTP.findOne({ otp });
     while (existingOtp) {
       otp = otpGenerator.generate(6, {
@@ -46,18 +44,27 @@ exports.sendOtp = async (req, res) => {
 
     console.log(" OTP generated:", otp);
 
-    // 4 Save OTP to DB
+    //  Save OTP to DB
     const createdOtp = await OTP.create({ email, otp });
 
-    //  Send OTP email (now otp exists!)
-    await mailSender(
+    //  Send OTP email via Gmail
+    const mailResponse = await mailSender(
       email,
       "StudyNotion | Email Verification Code",
-      otpTemplate(otp)  // use your nice HTML template
+      otpTemplate(otp)
     );
 
-    console.log(" Gmail SMTP: OTP email sent successfully to", email);
+    if (!mailResponse) {
+      console.log(" Email not sent via Gmail");
+      return res.status(500).json({
+        success: false,
+        message: "Failed to send OTP email",
+      });
+    }
 
+    console.log(" OTP email sent successfully to:", email);
+
+    //  Send response
     return res.status(200).json({
       success: true,
       message: "OTP created and sent successfully!",
@@ -72,9 +79,6 @@ exports.sendOtp = async (req, res) => {
     });
   }
 };
-
-
-
 
 
 //  SIGN UP
@@ -125,7 +129,7 @@ exports.signUp = async (req, res) => {
     const recentOtp = await OTP.find({ email })
       .sort({ createdAt: -1 })
       .limit(1);
-    console.log("🧾 OTP found for signup:", recentOtp[0]?.otp);
+    console.log(" OTP found for signup:", recentOtp[0]?.otp);
 
     if (recentOtp.length === 0) {
       return res.status(400).json({

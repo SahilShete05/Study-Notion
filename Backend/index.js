@@ -2,6 +2,8 @@ const express = require("express");
 const app = express();
 const dotenv = require("dotenv");
 dotenv.config();
+require('events').EventEmitter.defaultMaxListeners = 20;
+
 
 const userRoutes = require("./routes/User");
 const profileRoutes = require("./routes/Profile");
@@ -62,7 +64,7 @@ app.use((req, res, next) => {
   next();
 });
 
-// ✅ Handle preflight requests globally
+//  Handle preflight requests globally
 app.options("*", cors({
   origin: function (origin, callback) {
     if (!origin || /\.vercel\.app$/.test(origin) || allowedOrigins.includes(origin)) {
