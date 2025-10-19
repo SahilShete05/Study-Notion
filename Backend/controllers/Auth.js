@@ -14,9 +14,9 @@ require("dotenv").config();
 exports.sendOtp = async (req, res) => {
   try {
     const { email } = req.body;
-    console.log(" Email in sendOtp controller:", email);
+    console.log("📨 Email in sendOtp controller:", email);
 
-    //  Check if user already exists
+    // Check if user already exists
     const existingUser = await User.findOne({ email });
     if (existingUser) {
       return res.status(401).json({
@@ -25,13 +25,14 @@ exports.sendOtp = async (req, res) => {
       });
     }
 
-    //  Generate a unique 6-digit OTP
+    // Generate a unique 6-digit OTP
     let otp = otpGenerator.generate(6, {
       upperCaseAlphabets: false,
       lowerCaseAlphabets: false,
       specialChars: false,
     });
 
+    // Ensure OTP uniqueness
     let existingOtp = await OTP.findOne({ otp });
     while (existingOtp) {
       otp = otpGenerator.generate(6, {
@@ -44,10 +45,10 @@ exports.sendOtp = async (req, res) => {
 
     console.log(" OTP generated:", otp);
 
-    //  Save OTP to DB
+    // Save OTP to DB
     const createdOtp = await OTP.create({ email, otp });
 
-    //  Send OTP email via Gmail
+    // Try sending OTP email
     const mailResponse = await mailSender(
       email,
       "StudyNotion | Email Verification Code",
@@ -55,16 +56,18 @@ exports.sendOtp = async (req, res) => {
     );
 
     if (!mailResponse) {
-      console.log(" Email not sent via Gmail");
-      return res.status(500).json({
-        success: false,
-        message: "Failed to send OTP email",
+      console.warn(" Email sending failed. Continuing without email...");
+      return res.status(200).json({
+        success: true,
+        message:
+          "OTP generated successfully, but email delivery failed (check SMTP settings).",
+        createdOtp,
       });
     }
 
     console.log(" OTP email sent successfully to:", email);
 
-    //  Send response
+    // Success response
     return res.status(200).json({
       success: true,
       message: "OTP created and sent successfully!",
@@ -79,6 +82,7 @@ exports.sendOtp = async (req, res) => {
     });
   }
 };
+
 
 
 //  SIGN UP
