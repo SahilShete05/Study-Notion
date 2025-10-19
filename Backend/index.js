@@ -26,28 +26,20 @@ database.connectDB();
 app.use(express.json());
 app.use(cookieParser());
 
-//  CORS Configuration 
-const allowedOrigins = [
-  "http://localhost:3000",
-  "https://study-notion-frontend-weld-beta.vercel.app",
-  "https://study-notion-frontend-q4nrgfzn3-sahils-projects-fde210dc.vercel.app",
-];
+//  Dynamic CORS setup — works for all Vercel URLs + localhost
+const allowedOrigins = ["http://localhost:3000"];
 
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow Postman, Render internal requests, etc.
-      if (!origin) return callback(null, true);
-
-      // Allow partial matches (trailing slashes or query params)
-      const isAllowed = allowedOrigins.some((allowed) =>
-        origin.startsWith(allowed)
-      );
-
-      if (isAllowed) {
+      if (
+        !origin ||
+        allowedOrigins.includes(origin) ||
+        /\.vercel\.app$/.test(origin) //  Allow all your Vercel deployments
+      ) {
         callback(null, true);
       } else {
-        console.log(" Blocked by CORS:", origin);
+        console.log("❌ Blocked by CORS:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
@@ -55,10 +47,13 @@ app.use(
   })
 );
 
-//  Add CORS headers explicitly for extra safety
+// Extra headers for safety
 app.use((req, res, next) => {
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin)) {
+  if (
+    allowedOrigins.includes(origin) ||
+    (origin && /\.vercel\.app$/.test(origin))
+  ) {
     res.setHeader("Access-Control-Allow-Origin", origin);
   }
   res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
@@ -66,10 +61,11 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
-//  Handle CORS preflight requests globally (important for POST/PUT/DELETE)
+
+// ✅ Handle preflight requests globally
 app.options("*", cors({
   origin: function (origin, callback) {
-    if (!origin || allowedOrigins.some((allowed) => origin.startsWith(allowed))) {
+    if (!origin || /\.vercel\.app$/.test(origin) || allowedOrigins.includes(origin)) {
       callback(null, true);
     } else {
       callback(new Error("Not allowed by CORS"));
@@ -96,7 +92,7 @@ app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/reach", contactUsRoute);
 
-//  CORS test route
+// Test CORS route
 app.get("/cors-test", (req, res) => {
   res.json({
     success: true,
@@ -113,7 +109,7 @@ app.get("/", (req, res) => {
   });
 });
 
-//  Test email route (only in development)
+// Test email route 
 if (process.env.NODE_ENV !== "production") {
   app.get("/test-email", async (req, res) => {
     try {
