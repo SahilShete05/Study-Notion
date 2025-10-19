@@ -65,6 +65,17 @@ app.use((req, res, next) => {
   res.header("Access-Control-Allow-Credentials", "true");
   next();
 });
+//  Handle CORS preflight requests globally (important for POST/PUT/DELETE)
+app.options("*", cors({
+  origin: function (origin, callback) {
+    if (!origin || allowedOrigins.some((allowed) => origin.startsWith(allowed))) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"));
+    }
+  },
+  credentials: true,
+}));
 
 // File upload middleware
 app.use(
@@ -108,7 +119,7 @@ if (process.env.NODE_ENV !== "production") {
       const response = await mailSender(
         "shete1333@gmail.com",
         "StudyNotion Test Email",
-        "<h2>This is a test email from StudyNotion backend 🚀</h2>"
+        "<h2>This is a test email from StudyNotion backend </h2>"
       );
       return res.json({ success: true, message: "Email sent successfully!", response });
     } catch (error) {
