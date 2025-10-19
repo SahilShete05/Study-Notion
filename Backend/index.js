@@ -1,5 +1,7 @@
 const express = require("express");
 const app = express();
+const dotenv = require("dotenv");
+dotenv.config();
 
 const userRoutes = require("./routes/User");
 const profileRoutes = require("./routes/Profile");
@@ -12,10 +14,7 @@ const cookieParser = require("cookie-parser");
 const cors = require("cors");
 const { cloudinaryConnect } = require("./config/cloudinary");
 const fileUpload = require("express-fileupload");
-const dotenv = require("dotenv");
-
-// Load environment variables
-dotenv.config();
+const mailSender = require("./utils/mailSender");
 
 // Set PORT
 const PORT = process.env.PORT || 4000;
@@ -23,7 +22,7 @@ const PORT = process.env.PORT || 4000;
 // Database connection
 database.connectDB();
 
-// Middleware to parse JSON and cookies
+// Middleware
 app.use(express.json());
 app.use(cookieParser());
 
@@ -36,7 +35,6 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Allow requests with no origin (like mobile apps, curl, Postman)
       if (!origin || allowedOrigins.includes(origin)) {
         callback(null, true);
       } else {
@@ -72,6 +70,23 @@ app.get("/", (req, res) => {
     message: "Your server is up and running....",
   });
 });
+
+//  Test email route (only in development)
+if (process.env.NODE_ENV !== "production") {
+  app.get("/test-email", async (req, res) => {
+    try {
+      const response = await mailSender(
+        "shete1333@gmail.com",
+        "StudyNotion Test Email",
+        "<h2>This is a test email from StudyNotion backend 🚀</h2>"
+      );
+      return res.json({ success: true, message: "Email sent successfully!", response });
+    } catch (error) {
+      console.error(" Error sending test email:", error);
+      return res.status(500).json({ success: false, message: "Failed to send email", error });
+    }
+  });
+}
 
 // Start server
 app.listen(PORT, () => {
