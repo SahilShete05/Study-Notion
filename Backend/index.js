@@ -26,7 +26,7 @@ database.connectDB();
 app.use(express.json());
 app.use(cookieParser());
 
-// CORS Configuration
+//  CORS Configuration 
 const allowedOrigins = [
   "http://localhost:3000",
   "https://study-notion-frontend-weld-beta.vercel.app",
@@ -35,15 +35,36 @@ const allowedOrigins = [
 app.use(
   cors({
     origin: function (origin, callback) {
-      if (!origin || allowedOrigins.includes(origin)) {
+      // Allow Postman, Render internal requests, etc.
+      if (!origin) return callback(null, true);
+
+      // Allow partial matches (trailing slashes or query params)
+      const isAllowed = allowedOrigins.some((allowed) =>
+        origin.startsWith(allowed)
+      );
+
+      if (isAllowed) {
         callback(null, true);
       } else {
+        console.log(" Blocked by CORS:", origin);
         callback(new Error("Not allowed by CORS"));
       }
     },
     credentials: true,
   })
 );
+
+//  Add CORS headers explicitly for extra safety
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.header("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.header("Access-Control-Allow-Headers", "Content-Type, Authorization");
+  res.header("Access-Control-Allow-Credentials", "true");
+  next();
+});
 
 // File upload middleware
 app.use(
@@ -62,6 +83,15 @@ app.use("/api/v1/profile", profileRoutes);
 app.use("/api/v1/course", courseRoutes);
 app.use("/api/v1/payment", paymentRoutes);
 app.use("/api/v1/reach", contactUsRoute);
+
+//  CORS test route
+app.get("/cors-test", (req, res) => {
+  res.json({
+    success: true,
+    message: "CORS is working correctly!",
+    origin: req.headers.origin,
+  });
+});
 
 // Default route
 app.get("/", (req, res) => {
@@ -90,5 +120,5 @@ if (process.env.NODE_ENV !== "production") {
 
 // Start server
 app.listen(PORT, () => {
-  console.log(`App is running at port ${PORT}`);
+  console.log(` App is running at port ${PORT}`);
 });
